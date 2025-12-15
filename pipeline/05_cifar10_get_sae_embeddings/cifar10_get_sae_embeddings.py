@@ -12,6 +12,9 @@ from train_sae import SAE
 
 import argparse
 import torch.serialization
+from lightning_fabric.utilities.data import AttributeDict
+
+torch.serialization.add_safe_globals([AttributeDict])
 torch.serialization.add_safe_globals([argparse.Namespace])
 
 

@@ -63,3 +63,4 @@ data/**/*.tsv
 */.ipynb_checkpoints/*
 
 check_weights.ipynb
+vocab_dot_product_matrix.pth

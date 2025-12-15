@@ -37,7 +37,7 @@ In our implementation, we enhanced the SAE training to improve concept disentang
   where $I$ is the identity matrix, and $W \in \mathbb{R}^{d \times k}$ is the SAE decoder weight matrix.
 
 - **OrtSAE constraints:**  
-  Reduce the maximal cosine similarity of the each cincept embedding with rest of them:
+  Reduce the maximal cosine similarity of each concept embedding with all the others:
     ```math
   \mathcal{L}_{Ort} = \frac{1}{k} \sum_{i=1}^{k} \max_{j \neq i} \left( \frac{w_i^\top w_j}{\|w_i\| \, \|w_j\|} \right)^2
     ```
@@ -72,7 +72,10 @@ Below are all steps required to reproduce the experiments and results.
 │   ├── 05_cifar10_get_sae_embeddings/
 │   │   └── cifar10_get_sae_embeddings.py
 │   └── 06_train_cbm/
-│       └── train_cbm.py
+│   │   └── train_cbm.py
+│   └── 07_collapse_sae_embeddings/
+│       ├── collapse_sae.py
+│       └── cifar10_concept_activations.ipynb
 │
 ├── data/
 │   ├── concept_names/
@@ -89,6 +92,7 @@ Below are all steps required to reproduce the experiments and results.
 ├── models/
 │   ├── cbm/
 │   ├── sae/
+│   ├── sae_collapsed/
 │   ├── sae_final_models/
 │   └── sae_ort/
 │

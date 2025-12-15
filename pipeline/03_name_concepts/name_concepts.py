@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pandas as pd
 
 import torch
 import torch.nn.functional as F
@@ -42,26 +43,20 @@ def load_vocabulary(vocab_txt, vocab_emb, device):
 
 
 def assign_neuron_names(decoder_emb, vocab_emb, vocab_names):
-    logging.info("Normalizing and computing cosine similarities…")
-
-    # decoder_norm = F.normalize(decoder_emb, dim=1)
-    # vocab_norm = F.normalize(vocab_emb, dim=1)
+    logging.info("Computing similarities...")
 
     sim = decoder_emb.T @ vocab_emb.T
 
-    logging.info("Extracting top-1 concept names for each neuron…")
-    top_idx = sim.argmax(dim=1).cpu().numpy()
+    logging.info("Extracting top-1 concept for each neuron...")
 
-    assigned_names = [vocab_names[i] for i in top_idx]
-    return assigned_names
+    top_sim, top_idx = sim.max(dim=1)
 
-def save_csv(path, names):
-    logging.info(f"Saving concept names: {path}")
-    with open(path, "w") as f:
-        for i, name in enumerate(names):
-            f.write(f"{i},{name}\n")
-    logging.info("CSV saved successfully.")
+    df = pd.DataFrame({
+        "concept_name": [vocab_names[i] for i in top_idx.cpu().tolist()],
+        "similarity": top_sim.cpu().tolist()
+    })
 
+    return df
 
 if __name__ == "__main__":
     args = get_args()
@@ -76,8 +71,8 @@ if __name__ == "__main__":
 
     neuron_names = assign_neuron_names(decoder_emb, vocab_emb, vocab_names)
 
-    csv_path = os.path.join(args.output_dir, args.output_csv)
-    save_csv(csv_path, neuron_names)
+    csv_path_names = os.path.join(args.output_dir, args.output_csv)
+    neuron_names.to_csv(csv_path_names)
 
-    logger.info(f"Done! Saved concept names to: {csv_path}")
+    logger.info(f"Done! Saved concept names to: {csv_path_names}")
     logger.info("===== CONCEPT NAMING FINISHED =====")
