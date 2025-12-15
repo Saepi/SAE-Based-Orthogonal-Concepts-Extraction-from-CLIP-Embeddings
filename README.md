@@ -31,11 +31,7 @@ In our implementation, we enhanced the SAE training to improve concept disentang
 
 - **Frobenius-norm regularization:**  
   Minimize concept embeddings correlations:
-  Frobenius-norm regularization: $ \mathcal{L}_{F} = \| W^\top W - I \|_F^2 $
 
-  $$
-\mathcal{L}_{Ort} = \frac{1}{k} \sum_{i=1}^{k} \max_{j \neq i} \left( \frac{w_i^\top w_j}{\|w_i\| \, \|w_j\|} \right)^2
-$$
 
 - **Frobenius-norm regularization:**  
   Minimize concept embeddings correlations:  
@@ -53,18 +49,6 @@ $$
 
   where $I$ is the identity matrix, and $W \in \mathbb{R}^{d \times k}$ is the SAE decoder weight matrix.
 
-- **OrtSAE constraints:**  
-  Reduce the maximal cosine similarity of each concept embedding with all the others:
-    ```math
-  \mathcal{L}_{Ort} = \frac{1}{k} \sum_{i=1}^{k} \max_{j \neq i} \left( \frac{w_i^\top w_j}{\|w_i\| \, \|w_j\|} \right)^2
-    ```
-  where $w_i$ and $w_j$ are columns of $W$.
-
-- **SRIP regularization:**  
-  Penalizes the spectral norm deviation of the Gram matrix from identity:
-    ```math
-  \mathcal{L}_{SRIP} = \| W^\top W - I \|_2
-    ```
 
 ## Pipeline
 
