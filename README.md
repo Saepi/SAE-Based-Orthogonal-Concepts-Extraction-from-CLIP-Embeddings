@@ -29,9 +29,6 @@ The "Discover-then-Name" framework extracts human-interpretable concepts from pr
 
 In our implementation, we enhanced the SAE training to improve concept disentanglement by adding one of the following orthogonality losse to produce informative and interpretable concepts suitable for downstream CBMs:
 
-- **Frobenius-norm regularization:**  
-  Minimize concept embeddings correlations:
-
 
 - **Frobenius-norm regularization:**  
   Minimize concept embeddings correlations:  
