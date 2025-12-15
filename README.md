@@ -31,9 +31,13 @@ In our implementation, we enhanced the SAE training to improve concept disentang
 
 - **Frobenius-norm regularization:**  
   Minimize concept embeddings correlations:
-    ```math
-  \mathcal{L}_{F} = \| W^\top W - I \|_F^2
-    ```
+  Frobenius-norm regularization: $ \mathcal{L}_{F} = \| W^\top W - I \|_F^2 $
+
+  $$
+\mathcal{L}_{Ort} = \frac{1}{k} \sum_{i=1}^{k} \max_{j \neq i} \left( \frac{w_i^\top w_j}{\|w_i\| \, \|w_j\|} \right)^2
+$$
+
+
   where $I$ is the identity matrix, and $W \in \mathbb{R}^{d \times k}$ is the SAE decoder weight matrix.
 
 - **OrtSAE constraints:**  
