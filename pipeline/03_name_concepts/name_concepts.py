@@ -44,10 +44,10 @@ def load_vocabulary(vocab_txt, vocab_emb, device):
 def assign_neuron_names(decoder_emb, vocab_emb, vocab_names):
     logging.info("Normalizing and computing cosine similarities…")
 
-    decoder_norm = F.normalize(decoder_emb, dim=1)
-    vocab_norm = F.normalize(vocab_emb, dim=1)
+    # decoder_norm = F.normalize(decoder_emb, dim=1)
+    # vocab_norm = F.normalize(vocab_emb, dim=1)
 
-    sim = decoder_norm.T @ vocab_norm.T
+    sim = decoder_emb.T @ vocab_emb.T
 
     logging.info("Extracting top-1 concept names for each neuron…")
     top_idx = sim.argmax(dim=1).cpu().numpy()

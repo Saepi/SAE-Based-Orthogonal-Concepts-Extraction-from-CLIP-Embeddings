@@ -1,26 +1,15 @@
-# -----------------------------
-# Python cache and metadata
-# -----------------------------
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# Jupyter checkpoints
 .ipynb_checkpoints/
 
-# -----------------------------
-# Environment / tools
-# -----------------------------
 project_env/
 env/
 venv/
 *.egg-info/
 *.so
 
-# -----------------------------
-# Model checkpoints & weights
-# -----------------------------
 model/**/*.ckpt
 model/**/*.pt
 model/**/*.pth
@@ -29,44 +18,28 @@ model/**/weights/
 model/sae_final_models/*
 !model/sae_final_models/.gitkeep
 
-# -----------------------------
-# Training logs (TensorBoard, custom logs)
-# -----------------------------
 training_logs/
+training_logs/sae/
+training_logs/sae_ort/
+training_logs/cbm/
 **/logs/
 **/*.log
 **/tb_logs/
 **/events.out.tfevents.*
 
-# -----------------------------
-# Concept naming outputs
-# -----------------------------
 pipeline/03_name_concepts/concept_names/
 data/concept_names/
-
-# Keep the folder structure
 !pipeline/03_name_concepts/concept_names/.gitkeep
 !data/concept_names/.gitkeep
 
-# -----------------------------
-# Embeddings (CC3M, CIFAR10, SAE)
-# -----------------------------
 data/embeddings/
 data/sae_embeddings/
 data/vocab/embeddings_*.pth
-
-# Keep vocab text file and gitkeep
 !data/vocab/.gitkeep
 !data/vocab/*.txt
 
-# -----------------------------
-# Generated images (example: cosine hist)
-# -----------------------------
 pipeline/**/decoder_max_pairwise_cosine_hist.png
 
-# -----------------------------
-# Datasets (huge)
-# -----------------------------
 data/datasets/
 data/cifar-10-python.tar.gz
 data/*.tar.gz
@@ -74,28 +47,17 @@ data/**/*.parquet
 data/**/*.tar
 data/**/*.json
 data/**/*.tsv
-
-# Keep .gitkeep files
 !data/datasets/**/.gitkeep
 
-# -----------------------------
-# Large auto-generated files
-# -----------------------------
-*.csv  # concept_names CSVs, unless you want them tracked
-!data/vocab/*.csv   # allow vocab if needed
+*.csv
+!data/vocab/*.csv
 
-# -----------------------------
-# Misc
-# -----------------------------
 *.zip
 *.npz
 *.npy
 *.pickle
 *.pkl
 
-# -----------------------------
-# Jupyter notebook outputs
-# -----------------------------
 *.ipynb_checkpoints
 *.nbconvert.ipynb
 */.ipynb_checkpoints/*

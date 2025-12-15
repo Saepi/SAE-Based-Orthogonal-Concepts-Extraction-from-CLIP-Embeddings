@@ -1,31 +1,80 @@
 # SAE-Based Orthogonal Concepts Extraction from CLIP Embeddings
 
-This is a repository of a project made for the course of Numerical Linear Algebra, Skoltech 2025 by the team of:
-- Stepan Epifantsev, DS-1
-- Valeria Yakupova, DS-1
-- Andrej Mymrin, DS-1
+This repository contains the code for a course project developed for **Numerical Linear Algebra, Skoltech (2025)** by the team of:
+- Stepan Epifantsev, DS-1  
+- Valeria Yakupova, DS-1  
+- Andrej Mymrin, DS-1  
 
-<details> <summary><strong>Click to expand the full project tree</strong></summary>
+## About
+
+In [“Discover-then-Name: Task-Agnostic Concept Bottlenecks via Automated Concept Discovery”](https://arxiv.org/abs/2407.14499), it was suggested to use a Sparse Autoencoder (SAE) on CLIP embeddings to extract neurons aligned with human-interpretable concepts for further implementation in Concept Bottleneck Models (CBMs). This approach eliminates the need for manually labeling a concept set in the dataset, significantly reducing the amount of time spent on data collection.
+
+However, CBMs are known to be prone to polysemantic concepts, which reduces model interpretability and limits the ability to intervene effectively.
+
+The goal of this project is to explicitly enforce orthogonality between SAE concepts during training, thereby:
+- reducing information leakage in the concept layer,
+- improving concept disentanglement,
+- increasing interpretability of learned representations.
+
+## Overview
+The "Discover-then-Name" framework extracts human-interpretable concepts from pretrained models in two stages:
+
+1. **Discover:**  
+   A Sparse Autoencoder (SAE) is trained on CLIP embeddings to learn selective latent neurons. Sparsity encourages each neuron to respond to a small set of features.
+
+2. **Name:**  
+   Each latent neuron is assigned a semantic label by finding the closest match in a vocabulary of text embeddings, linking latent features to human-understandable concepts.
+
+![Pipeline Overview](assets/pipeline_dtn.png)
+
+In our implementation, we enhanced the SAE training to improve concept disentanglement by adding one of the following orthogonality losse to produce informative and interpretable concepts suitable for downstream CBMs:
+
+- **Frobenius-norm regularization:**  
+  Minimize concept embeddings correlations:
+  $$
+  \mathcal{L}_{F} = \| W^\top W - I \|_F^2
+  $$
+  where $I$ is the identity matrix, and $W \in \mathbb{R}^{d \times k}$ is the SAE decoder weight matrix.
+
+- **OrtSAE constraints:**  
+  Reduce the maximal cosine similarity of the each cincept embedding with rest of them:
+   $$
+  \mathcal{L}_{Ort} = \frac{1}{k} \sum_{i=1}^{k} \max_{j \neq i} \left( \frac{w_i^\top w_j}{\|w_i\| \, \|w_j\|} \right)^2
+  $$
+  where $w_i$ and $w_j$ are columns of $W$.
+
+- **SRIP regularization:**  
+  Penalizes the spectral norm deviation of the Gram matrix from identity:
+  $$
+  \mathcal{L}_{SRIP} = \| W^\top W - I \|_2
+  $$
+
+## Pipeline
+
+Below are all steps required to reproduce the experiments and results.
+
+<details>
+<summary><strong>Click to expand the full project tree</strong></summary>
+
+```text
 .
 ├── pipeline/
 │   ├── 01_cc3m_get_clip_embeddings/
 │   │   └── extract_cc3m_embeddings.py
 │   ├── 02_train_sae/
-│   │   ├── choose_sae_params.sh
-│   │   ├── choose_orthogonal_losses.sh
-│   │   └── run_chosen_models.sh
+│   │   ├── sae_losses.py
+│   │   └── train_sae.py
 │   ├── 03_name_concepts/
 │   │   ├── generate_vocab_embeddings.py
 │   │   └── name_concepts.py
 │   ├── 04_cifar10_get_clip_embeddings/
 │   │   └── cifar10_get_clip_embeddings.py
 │   ├── 05_cifar10_get_sae_embeddings/
-│   │   └── extract_concept_activations_cifar10.sh
+│   │   └── cifar10_get_sae_embeddings.py
 │   └── 06_train_cbm/
-│       └── train_cbm.sh
+│       └── train_cbm.py
 │
 ├── data/
-│   ├── cifar-10-python.tar.gz
 │   ├── concept_names/
 │   ├── datasets/
 │   │   └── cc3m/
@@ -33,7 +82,6 @@ This is a repository of a project made for the course of Numerical Linear Algebr
 │   │   ├── cc3m/
 │   │   └── cifar10/
 │   ├── sae_embeddings/
-│   │   ├── cc3m/
 │   │   └── cifar10/
 │   └── vocab/
 │       └── 20k.txt
@@ -50,15 +98,12 @@ This is a repository of a project made for the course of Numerical Linear Algebr
 │   └── cbm/
 │
 └── README.md
+```
+</details> 
 
-</details>
+### Step 0. Install requirements
 
-In “Discover-then-Name: Task-Agnostic Concept Bottlenecks via Automated Concept Discovery” (https://arxiv.org/abs/2407.14499), it was suggested to use a Sparse Autoencoder (SAE) on CLIP embeddings to extract neurons aligned with human-interpretable concepts for further implementation in Concept Bottleneck Models (CBMs). This approach eliminates the need for manually labeling a concept set in the dataset, significantly reducing the amount of time spent on data collection.
-
-However, CBMs are known to be prone to polysemantic concepts, which reduces model interpretability and limits the ability to intervene effectively. We aim to explicitly enforce concept orthogonality during SAE training, with the goal of reducing information leakage in the concept layer and improving concept disentanglement.
-
-
-## Step 0. Install requirements
+Create and activate a virtual environment, then install dependencies:
 
 ```bash
 python -m venv cbm_clip_sae
@@ -67,14 +112,15 @@ pip install -r requirements
 ```
 
 
-## Step 1. Get CLIP embeddings of CC3M dataset images
+### Step 1. Get CLIP embeddings of CC3M dataset images
 
-### Download data
+Download the ‘Train_GCC-training.tsv’ and ‘Validation_GCC-1.1.0-Validation.tsv’ from https://ai.google.com/research/ConceptualCaptions/download. Change their names to 
+- cc3m_training.tsv 
+- cc3m_test.tsv
 
-Download the ‘Train_GCC-training.tsv’ and ‘Validation_GCC-1.1.0-Validation.tsv’ from https://ai.google.com/research/ConceptualCaptions/download. Change their names to cc3m_training.tsv and cc3m_test.tsv. Run the commands below to download images.
+***Note:*** Only the first 200,000 rows of the train file are used.
 
-***Note:*** From further on we use only first 200,000 rows of the train file
-
+Add headers and download images:
 ```bash
 sed -i '1s/^/caption\turl\n/' cc3m_training.tsv 
 
@@ -89,9 +135,7 @@ img2dataset --url_list cc3m_test.tsv --input_format "tsv" --url_col "url" --capt
 
 The last two shards of training data are used as validation set.
 
-### Extract CLIP embeddings
-
-Run next command to obtain CLIP embeddings of the CC3M images.
+Extract CLIP image embeddings:
 
 ```bash
 python pipeline/01_cc3m_get_clip_embeddings.py/extract_cc3m_embeddings.py \
@@ -108,55 +152,50 @@ python pipeline/01_cc3m_get_clip_embeddings.py/extract_cc3m_embeddings.py \
         --device cuda
 ```
 
-## Step 2. Train SAE
+### Step 2. Train SAE
 
-Run the command to find the best dimensionality and sparse loss multiplier. We have chosen 4096 and 1e-7.
+Search for the optimal SAE dimensionality and sparsity coefficien (selected values: 4096, 1e-7):
 
 ```bash
 bash pipeline/02_train_sae/choose_sae_params.sh 
 ```
 
-Run the command to find the best orthogonality loss multipliers. Check our results in the next script.
-
+Select orthogonality regularization strengths:
 ```bash
 bash pipeline/02_train_sae/choose_orthogonal_losses.sh 
 ```
 
-Run the command to find train the 4 SAE models (no orthogonalization, Frobenius norm approach, OrtSAE method and SRIP).
+Train 4 SAE variants (no orthogonalization, Frobenius norm approach, OrtSAE method and SRIP):
 
 ```bash
 bash pipeline/02_train_sae/run_chosen_models.sh 
 ```
 
-In order to monitor the loss and other metrics changes run the code (depending on the directory of interest):
+Monitor training:
 
 ```bash
 tensorboard --logdir ./training_logs/sae
 ```
 
-## Step 3. Name concepts
-
-### Download vocabulary and generate text embeddings
+### Step 3. Name concepts
 
 Download the vocabulary of 20k words used by CLIP-Dissect (https://github.com/first20hours/google-10000-english/blob/master/20k.txt). 
 
-Run the code to generate normalized CLIP embeddings
+Generate normalized CLIP text embeddings:
 
 ```bash
 python pipeline/03_name_concepts/generate_vocab_embeddings.py
 ```
 
-### Name SAE concepts
-
-The following code runs the search for the closest text embeddings for each of the concept embeddings
+Assign names to SAE concepts by nearest text embeddings:
 
 ```bash
 bash pipeline/03_name_concepts/name_concepts.py
 ```
 
-## Step 4. Get CLIP embeddings of CIFAR-10 dataset images
+### Step 4. Get CLIP embeddings of CIFAR-10 dataset images
 
-Launch the command below to download CIFAR-10 and extract CLIP embeddings of the images
+Download CIFAR-10 and extract CLIP embeddings:
 
 ```bash
 python pipeline/04_cifar10_get_clip_embeddings/cifar10_get_clip_embeddings.py \
@@ -164,25 +203,36 @@ python pipeline/04_cifar10_get_clip_embeddings/cifar10_get_clip_embeddings.py \
     --output_dir ./data/embeddings/cifar10/
 ```
 
-## Step 5. Get SAE embeddings of CIFAR-10 dataset images
+### Step 5. Get SAE embeddings of CIFAR-10 dataset images
 
-The following code gets the CIFAR-10 concept embeddings for each of the models
+Compute concept activations for all SAE models:
 
 ```bash
 bash pipeline/05_cifar10_get_sae_embeddings/extract_concept_activations_cifar10.sh
 ```
 
-## Step 6. Train CBM final layer
+### Step 6. Train CBM final layer
 
-Run the command beow to train the linear layer of CBM with different levels of sparsity
+Train the CBM linear classifier with different sparsity levels:
 
 ```bash
 bash pipeline/06_train_cbm/train_cbm.sh
 ```
 
-Training process could be seen by the following commad
+Monitor training:
 
 ```bash
 tensorboard --logdir ./training_logs/cbm
 ```
 
+## References
+
+- **Sukrut Rao, Sweta Mahajan, Moritz Böhle, and Bernt Schiele (2024).**  
+  [**Discover-then-Name: Task-Agnostic Concept Bottlenecks via Automated Concept Discovery**](https://arxiv.org/abs/2407.14499)
+
+- **Anton Korznikov, Andrey Galichin, Alexey Dontsov, Oleg Rogov, Elena Tutubalina, and Ivan Oseledets (2025).**  
+  [**ORTSAE: Orthogonal Sparse Autoencoders Uncover Atomic Features**](https://arxiv.org/abs/2509.22033)
+
+
+- **Nitin Bansal, Xiaohan Chen, and Zhangyang Wang (2018).**  
+  [**Can We Gain More from Orthogonality Regularizations in Training Deep CNNs?**](https://arxiv.org/abs/1810.09102)

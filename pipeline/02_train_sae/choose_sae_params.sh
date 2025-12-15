@@ -10,7 +10,7 @@ for L1 in "${LAMBDA1S[@]}"; do
 
         echo "Running $MODEL_NAME"
 
-        python 02_train_sae/train_sae.py \
+        python pipeline/02_train_sae/train_sae.py \
         --latent_dim $DIM \
         --lr 1e-4\
         --lambda1 $L1 \

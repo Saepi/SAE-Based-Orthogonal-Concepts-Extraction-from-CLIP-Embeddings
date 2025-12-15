@@ -66,10 +66,13 @@ class SparseLinearClassifier(pl.LightningModule):
         preds = logits.argmax(dim=1)
         acc = (preds == y).float().mean()
 
+        nonzero_count = torch.count_nonzero(self.linear.weight)
+
         self.log(f"{stage}/total_loss", total_loss, on_step=False, on_epoch=True)
         self.log(f"{stage}/ce_loss", ce_loss, on_step=False, on_epoch=True)
         self.log(f"{stage}/sparsity", l1_loss, on_step=False, on_epoch=True)
         self.log(f"{stage}/accuracy", acc, on_step=False, on_epoch=True)
+        self.log(f"{stage}/nonzero_weights", nonzero_count, on_step=False, on_epoch=True)
 
         if stage == "val":
             self.val_labels_epoch.append(y.cpu())

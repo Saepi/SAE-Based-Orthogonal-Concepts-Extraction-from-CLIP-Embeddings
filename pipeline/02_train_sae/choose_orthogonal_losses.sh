@@ -16,7 +16,7 @@ for lambda in "${lambdas[@]}"; do
         echo "----------------------------------------"
         echo "Training $MODEL_NAME"
 
-        python 02_train_sae/train_sae.py \
+        python pipeline/02_train_sae/train_sae.py \
             --max_epochs $MAX_EPOCHS \
             --model_name $MODEL_NAME \
             $arg_name $lambda \
