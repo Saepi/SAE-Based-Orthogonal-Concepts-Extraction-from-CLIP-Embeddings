@@ -29,25 +29,23 @@ The "Discover-then-Name" framework extracts human-interpretable concepts from pr
 
 In our implementation, we enhanced the SAE training to improve concept disentanglement by adding one of the following orthogonality losse to produce informative and interpretable concepts suitable for downstream CBMs:
 
+
 - **Frobenius-norm regularization:**  
-  Minimize concept embeddings correlations:
-    ```math
-  \mathcal{L}_{F} = \| W^\top W - I \|_F^2
-    ```
-  where $I$ is the identity matrix, and $W \in \mathbb{R}^{d \times k}$ is the SAE decoder weight matrix.
+  Minimize concept embeddings correlations:  
+  ![Frobenius-norm](https://latex.codecogs.com/png.latex?\mathcal{L}_{F}%20=%20\|%20W^\top%20W%20-%20I%20\|_F^2)
 
 - **OrtSAE constraints:**  
-  Reduce the maximal cosine similarity of each concept embedding with all the others:
-    ```math
-  \mathcal{L}_{Ort} = \frac{1}{k} \sum_{i=1}^{k} \max_{j \neq i} \left( \frac{w_i^\top w_j}{\|w_i\| \, \|w_j\|} \right)^2
-    ```
-  where $w_i$ and $w_j$ are columns of $W$.
+  Reduce the maximal cosine similarity of each concept embedding with all the others:  
+  ![OrtSAE](https://latex.codecogs.com/png.latex?\mathcal{L}_{Ort}%20=%20\frac{1}{k}%20\sum_{i=1}^{k}%20\max_{j\neq%20i}%20\left(%20\frac{w_i^\top%20w_j}{\|w_i\|\|w_j\|}%20\right)^2)
 
 - **SRIP regularization:**  
-  Penalizes the spectral norm deviation of the Gram matrix from identity:
-    ```math
-  \mathcal{L}_{SRIP} = \| W^\top W - I \|_2
-    ```
+  Penalizes the spectral norm deviation of the Gram matrix from identity:  
+  ![SRIP](https://latex.codecogs.com/png.latex?\mathcal{L}_{SRIP}%20=%20\|%20W^\top%20W%20-%20I%20\|_2)
+
+
+
+  where $I$ is the identity matrix, and $W \in \mathbb{R}^{d \times k}$ is the SAE decoder weight matrix.
+
 
 ## Pipeline
 
